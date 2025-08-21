@@ -13,15 +13,17 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Merge common AI model rules (ClashVerge format)
+      - name: Merge yaml AI model rules (payload only)
         run: |
           mkdir -p merged
-          AI_KEYWORDS="chatgpt|claude|gemini|llama|gpt|midjourney|stable-diffusion|copilot|mistral|groq|openai|anthropic|google"
-          # 搜索所有内容包含大模型关键字的规则行
-          grep -iEr "${AI_KEYWORDS}" rule/Clash/ | awk -F: '{print $2}' | sed '/^\s*$/d' | sort | uniq > merged/tmp_rules.txt
-          # 生成 clashverge 格式文件
+          # 只查找 yaml/yml 文件，合并 payload 下内容，去除注释仅保留规则行，合并去重
+          find rule/Clash/ -type f \( -name "*.yml" -o -name "*.yaml" \) | \
+          xargs awk '/^payload:/ {flag=1; next} /^ *- / && flag {print $0} /^$/ {flag=0}' | \
+          sed '/^\s*#/d;/^\s*$/d' | \
+          sort | uniq > merged/tmp_rules.txt
+          # 生成最终合并的 yaml 文件，只保留一个 payload
           echo "payload:" > merged/ai_rules_clashverge.txt
-          awk '{print "  - " $0}' merged/tmp_rules.txt >> merged/ai_rules_clashverge.txt
+          awk '{print "  " $0}' merged/tmp_rules.txt >> merged/ai_rules_clashverge.txt
           rm merged/tmp_rules.txt
 
       - name: Upload merged file as artifact
@@ -30,7 +32,6 @@ jobs:
           name: ai_rules_clashverge
           path: merged/ai_rules_clashverge.txt
 
-      # 如需自动推送合并文件到仓库，取消下方注释
       - name: Commit merged rules
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
