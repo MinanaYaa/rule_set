@@ -16,7 +16,7 @@ jobs:
       - name: Merge yaml AI model rules (payload only, filtered by AI keywords)
         run: |
           mkdir -p merged
-          AI_KEYWORDS="chatgpt|claude|gemini|llama|gpt|midjourney|stable-diffusion|copilot|mistral|groq|openai|anthropic|google"
+          AI_KEYWORDS="chatgpt|claude|gemini|llama|midjourney|stable-diffusion|copilot|mistral|groq|openai|anthropic"
           # 只查找 rule/Clash/*/*.yml 或 *.yaml 文件，合并 payload 下内容，过滤 AI 关键字、去注释和空行
           find rule/Clash/ -mindepth 2 -maxdepth 2 -type f \( -name "*.yml" -o -name "*.yaml" \) | \
           xargs awk '/^payload:/ {flag=1; next} /^ *- / && flag {print $0} /^$/ {flag=0}' | \
