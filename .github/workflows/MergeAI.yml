@@ -1,0 +1,40 @@
+name: Merge AI Model Rules For ClashVerge
+
+on:
+  push:
+    paths:
+      - rule/Clash/**
+  workflow_dispatch:
+
+jobs:
+  merge-ai-rules:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Merge common AI model rules (ClashVerge format)
+        run: |
+          mkdir -p merged
+          AI_KEYWORDS="ai|chatgpt|claude|gemini|llama|gpt|midjourney|stable-diffusion|copilot|mistral|groq|yiyan|qwen|moonshot|openai|anthropic|google|baidu|alibaba"
+          # 搜索所有内容包含大模型关键字的规则行
+          grep -iEr "${AI_KEYWORDS}" rule/Clash/ | awk -F: '{print $2}' | sed '/^\s*$/d' | sort | uniq > merged/tmp_rules.txt
+          # 生成 clashverge 格式文件
+          echo "payload:" > merged/ai_rules_clashverge.txt
+          awk '{print "  - " $0}' merged/tmp_rules.txt >> merged/ai_rules_clashverge.txt
+          rm merged/tmp_rules.txt
+
+      - name: Upload merged file as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai_rules_clashverge
+          path: merged/ai_rules_clashverge.txt
+
+      # 如需自动推送合并文件到仓库，取消下方注释
+      - name: Commit merged rules
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add merged/ai_rules_clashverge.txt
+          git commit -m "Auto-merge AI model rules for ClashVerge"
+          git push
