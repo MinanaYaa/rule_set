@@ -39,14 +39,8 @@ jobs:
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           git add merged/ai_rules_clashverge.txt
-          git commit -m "Auto-merge AI model rules for ClashVerge"
-          git push
-
-      - name: Commit changes
-        run: |
-          if [[ -n "$(git status --porcelain)" ]]; then
-            git add .
-            git commit -m "Update rules"
+          if [[ -n "$(git status --porcelain merged/ai_rules_clashverge.txt)" ]]; then
+            git commit -m "Auto-merge AI model rules for ClashVerge"
             git push
           else
             echo "No changes to commit."
