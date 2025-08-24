@@ -41,3 +41,13 @@ jobs:
           git add merged/ai_rules_clashverge.txt
           git commit -m "Auto-merge AI model rules for ClashVerge"
           git push
+
+      - name: Commit changes
+        run: |
+          if [[ -n "$(git status --porcelain)" ]]; then
+            git add .
+            git commit -m "Update rules"
+            git push
+          else
+            echo "No changes to commit."
+          fi
