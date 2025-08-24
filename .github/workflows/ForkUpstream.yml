@@ -2,7 +2,7 @@ name: Sync upstream
 
 on:
   schedule:
-    - cron: '12 12 * * *' # 每小时自动运行一次
+    - cron: '12 12 * * *'
   workflow_dispatch:
 
 jobs:
@@ -27,5 +27,14 @@ jobs:
       - name: Merge upstream changes
         run: |
           git checkout master
-          git merge upstream/master --allow-unrelated-histories -m "Sync upstream"
+          git merge upstream/master --allow-unrelated-histories -m "Sync upstream" || true
+
+      - name: Auto-resolve conflicts (prefer upstream)
+        run: |
+          git diff --name-only --diff-filter=U | while read filename; do
+            git checkout --theirs "$filename"
+            git add "$filename"
+          done
+          git diff --name-only --diff-filter=U | xargs -r rm
+          git commit -m "Auto-resolve merge conflicts (prefer upstream)" || echo "No conflicts to commit"
           git push origin master
